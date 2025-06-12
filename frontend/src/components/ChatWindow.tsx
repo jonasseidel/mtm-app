@@ -4,7 +4,7 @@ import EnterPromptField from "./EnterPromptField";
 
 function ChatWindow() {
     //Maybe via an argument/Props later?
-    const initialMessage: [string, number][] = [["Hallo! Ich bin dein Moor-Experte. Was möchtest du über Moore wissen?",0]]
+    //const initialMessage: [string, number][] = [["Hallo! Ich bin dein Moor-Experte. Was möchtest du über Moore wissen?",0]]
     const [messages, setMessages] = useState<[string, number][]>([]);
 
     useEffect(() => {
