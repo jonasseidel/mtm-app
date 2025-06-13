@@ -95,11 +95,13 @@ function ChatWindow() {
     }
 
     return (
-        <div className="vstack gap-3 p-2">
-            <div className="mx-auto w-50">
-                <div className="align-self-start px-2"> Mission to Marsh </div>
-            </div>
+        <div className="vstack gap-3 p-2">       
             <ChatWindowDisplay messages={messages} />
+            <div className="bg-white w-50 fixed-bottom mx-auto">
+                <div className="invisible">
+                    Empty
+                </div>
+            </div>
             <EnterPromptField onSend={handleSend} onReset={handleReset}/>
         </div>
     );
