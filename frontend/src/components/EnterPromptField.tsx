@@ -11,6 +11,7 @@ interface EnterPromptFieldProps {
 
 function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: EnterPromptFieldProps) {
   const [value, setValue] = useState('');
+  const [disabled , setDisabled] = useState(false);
   //const [rows, setRows] = useState(1);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -21,16 +22,20 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
 
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (value.trim() !== '') {
-      onSend(value);
+      setDisabled(true);
+      await onSend(value);
       setValue(''); // Clear the input after sending
+      setDisabled(false);
     }
   }
 
-  const handleReset = () => {
-    onReset();
+  const handleReset = async () => {
+    setDisabled(true);
+    await onReset();
     setValue('');
+    setDisabled(false);
   }
 
   const focusInput = () => {
@@ -64,8 +69,8 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
                     placeholder={placeholder}
                 />
             <div className="hstack gap-4 ">
-                <button className="btn btn-outline-secondary rounded-circle" type="button" onClick={handleReset}><i className="bi bi-arrow-repeat fs-5"></i></button>
-                <button className="btn btn-outline-primary rounded-circle ms-auto" type="button" onClick={handleSend}> <i className="bi bi-arrow-up fs-5"></i></button>
+                <button className="btn btn-outline-secondary rounded-circle" type="button" onClick={handleReset} disabled={disabled}><i className="bi bi-arrow-repeat fs-5"></i></button>
+                <button className="btn btn-outline-primary rounded-circle ms-auto" type="button" onClick={handleSend} disabled={disabled}> <i className="bi bi-arrow-up fs-5"></i></button>
             </div>
           </div>
         </div>
