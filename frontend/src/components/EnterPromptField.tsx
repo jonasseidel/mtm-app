@@ -12,6 +12,7 @@ interface EnterPromptFieldProps {
 function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: EnterPromptFieldProps) {
   const [value, setValue] = useState('');
   const [disabled , setDisabled] = useState(false);
+  const [lastSym , setLastSym] = useState('');
   //const [rows, setRows] = useState(1);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -25,16 +26,16 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
   const handleSend = async () => {
     if (value.trim() !== '') {
       setDisabled(true);
-      await onSend(value);
       setValue(''); // Clear the input after sending
+      await onSend(value);
       setDisabled(false);
     }
   }
 
   const handleReset = async () => {
     setDisabled(true);
-    await onReset();
     setValue('');
+    await onReset();
     setDisabled(false);
   }
 
@@ -42,9 +43,13 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
     inputRef.current?.focus();
   };
 
+  //Outdated function to handle height change. Solved differently now.
   const handleHeightChange = () => {
     //Add newline to the value
-    setValue(value + '\n');
+    if (value.endsWith('\n') || value.length === 0 || lastSym === 'Backspace') {
+      return; // Prevents adding multiple newlines
+    }
+    //setValue(value + '\n');
   };
 
   return (
@@ -55,7 +60,7 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
                     className="d-flex bg-light w-100 chat-input p-2 form-control"
                     ref={inputRef}
                     value={value}
-                    minRows={2}
+                    minRows={1}
                     maxRows={5}
                     onHeightChange={handleHeightChange}
                     onChange={handleChange}
@@ -63,7 +68,10 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault(); // Prevents new line on Enter
                                 handleSend();
+                            } else {
+                              setLastSym(e.key);
                             }
+
                         }
                     }
                     placeholder={placeholder}
