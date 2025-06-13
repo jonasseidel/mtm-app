@@ -1,7 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from gemini_model import GeminiModel
+
+import asyncio
 
 
 def _read_system_prompt(path: str) -> str:
@@ -31,6 +34,22 @@ class Message(BaseModel):
 async def chat(message: Message):
     res = model.gen(message.prompt)
     return {"response": res}
+
+@app.post("/chat/stream")
+async def chat_stream(message: Message):
+    async def event_generator():
+        # Simulating a streaming generation from your model
+        try:
+            for chunk in model.gen_stream(message.prompt):
+                print("Chunk:", chunk.text)
+                yield chunk.text
+                #await asyncio.sleep(0.005)  # just to avoid blocking
+
+        except Exception as e:
+            print(f"Error streaming the response: {e}")
+            yield "... Error"
+        
+    return StreamingResponse(event_generator(), media_type="text/plain")
 
 @app.post("/reset")
 async def reset():

@@ -48,7 +48,22 @@ class GeminiModel:
                     print("Max retries exceeded.")
                     return "Error: Unable to process the request."
 
-    def gen_stream(self, prompt: str):
-        response = self.chat.send_message_stream(prompt)
-        return response
+    def gen_stream(self, prompt: str, retries: int = 7):
+        for attempt in range(retries):
+            try:
+                response = self.chat.send_message_stream(prompt)
+                return response
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < retries - 1:
+                    time.sleep(2 ** attempt)  # 1s, 2s, 4s
+                else:
+                    print("Max retries exceeded.")
+                    return "Error: Unable to process the request."
+                
+    def print_chat_history(self):
+        for i, msg in enumerate(self.chat.get_history()):
+            role = msg.role
+            content = msg.parts[0].text if msg.parts else "<no content>"
+            print(f"[{i}] {role.upper()}: {content}")
         

@@ -6,16 +6,20 @@ function ChatWindow() {
     //Maybe via an argument/Props later?
     //const initialMessage: [string, number][] = [["Hallo! Ich bin dein Moor-Experte. Was möchtest du über Moore wissen?",0]]
     const [messages, setMessages] = useState<[string, number][]>([]);
-
+    let streamEnabled = true;
+    
     useEffect(() => {
         console.log("Ask model to greet user");
         introduceModel();
     }, []);
     
     const introduceModel = async () => {
-        const res = await generateResponse("Bitte Grüße den Nutzer und stelle dich vor. Nur ganz kurz!"); // Maybe via argument/props later?
-        console.log(res)
-        setMessages([[res,0]]);
+        setMessages([]);
+        if (streamEnabled){
+            generateResponseStream("Bitte Grüße den Nutzer und stelle dich vor. Nur ganz kurz!"); // Maybe via argument/props later?
+        } else{
+            generateResponse("Bitte Grüße den Nutzer und stelle dich vor. Nur ganz kurz!"); // Maybe via argument/props later?
+        }
     };
 
     const generateResponse = async (message: string) => {
@@ -33,41 +37,100 @@ function ChatWindow() {
             );
             console.log("Response received")
             const data = await res.json();
-            return data.response;
+            setMessages(prevMessages => [...prevMessages, [data.response,0]]);
+
         } catch (error) {
             console.error("Error fetching response")
-            return "Error"
         }
-        
+
+        await delay(5);
+        scroll();
     }
+
+
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const handleSend = async (value: string) => {
+
         setMessages(prevMessages => [...prevMessages, [value,1]]);
-
         await delay(5);
 
-        window.scrollTo({
-            top: Math.max(
-                document.body.scrollHeight,
-                document.documentElement.scrollHeight
-            ),
-            behavior: 'smooth',
-            });
+        scroll();
 
-        const res = await generateResponse(value);
-        setMessages(prevMessages => [...prevMessages, [res,0]]);
-
-        await delay(5);
-
-        window.scrollTo({
-            top: Math.max(
-                document.body.scrollHeight,
-                document.documentElement.scrollHeight
-            ),
-            behavior: 'smooth',
-            });
+        if (streamEnabled){
+            await generateResponseStream(value);
+        } else{
+            await generateResponse(value);
+        }
     }
+
+    const scroll = () => {
+        window.scrollTo({
+            top: Math.max(
+                document.body.scrollHeight,
+                document.documentElement.scrollHeight
+            ),
+            behavior: 'smooth',
+        });
+    }
+
+    const generateResponseStream = async (value : string) => {
+        
+        setMessages(prevMessages => [...prevMessages, ["",0]]);
+        try{
+            const res = await fetch("http://localhost:8000/chat/stream",
+                {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    },
+                body: JSON.stringify({ prompt: value }),
+                });
+            if (!res.ok) {
+                throw new Error("Network response was not ok: "+  res.body);
+            }else {console.log("Response was okay")}
+            if (!res.body) {
+                throw new Error("Response body is null");
+            }else {console.log("Body not null")}
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();               // Decode binary stream to text
+            let done = false;
+
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                await delay(50);
+                if (value) {
+                    const chunk = decoder.decode(value, { stream: true });
+                    for(const char of chunk){
+                        setMessages(prev => {
+                        const updated = [...prev];
+                        const [text, flag] = updated[updated.length - 1];
+                        updated[updated.length - 1] = [text + char, flag];
+                        return updated;
+                        });
+                        await delay(15);
+                    }
+                    
+                }
+                scroll();
+            }
+            console.log("Done reading!")
+        } catch (error) {
+            console.log("Could not get full response")
+            setMessages(prev => {
+                        const updated = [...prev];
+                        const [text, flag] = updated[updated.length - 1];
+                        updated[updated.length - 1] = [text + " ... Error", flag];
+                        return updated;
+                    });
+        }
+
+        await delay(5);
+        scroll();
+    }
+
 
     const handleReset = async () => {
         try {
