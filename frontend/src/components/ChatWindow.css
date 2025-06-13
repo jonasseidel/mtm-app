@@ -1,0 +1,14 @@
+.chat-box {
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  padding: 14px 20px;
+  cursor: text; /* 👈 makes whole box show the text cursor */
+  transition: all 0.2s ease;
+}
+
+.chat-input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent; /* Optional */
+}
