@@ -1,5 +1,6 @@
 
 import ReactMarkdown from 'react-markdown';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 interface ChatWindowProps {
   messages: [string, number][];
@@ -24,7 +25,7 @@ function ChatWindowDisplay({messages}: ChatWindowProps) {
               <div className="card rounded-4 align-self-start" key={`${index}-answer`} style={{ maxWidth: '85%' }}>
                 <div className="card-body">
                   <h6 className="card-title text-success">Bot</h6>
-                  <ReactMarkdown >{message}</ReactMarkdown>
+                  {message ?  <ReactMarkdown >{message}</ReactMarkdown> : <div> <i className="bi bi-broadcast fs-5"></i> </div>}
                   
                 </div>
               </div>

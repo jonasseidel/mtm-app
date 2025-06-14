@@ -103,14 +103,17 @@ function ChatWindow() {
                 await delay(50);
                 if (value) {
                     const chunk = decoder.decode(value, { stream: true });
+                    let iter = 0;
                     for(const char of chunk){
+                        iter++;
                         setMessages(prev => {
                         const updated = [...prev];
                         const [text, flag] = updated[updated.length - 1];
                         updated[updated.length - 1] = [text + char, flag];
                         return updated;
                         });
-                        await delay(15);
+                        await delay(7);
+                        if(iter%5 === 0) {scroll();} 
                     }
                     
                 }
