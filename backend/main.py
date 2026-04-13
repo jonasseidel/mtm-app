@@ -37,20 +37,23 @@ async def chat(message: Message):
 @app.post("/chat/stream")
 async def chat_stream(message: Message):
     async def event_generator():
-        # simulating a streaming generation from the model
-        try:
-            for chunk in model.gen_stream(message.prompt):
-                print("Chunk:", chunk.text)
-                yield chunk.text
-                #await asyncio.sleep(0.005)  # just to avoid blocking
+        retries = 5
+        for attempt in range(retries):
+            try:
+                for chunk in model.gen_stream(message.prompt):
+                    print("Chunk:", chunk.text)
+                    yield chunk.text
+                return
+            except Exception as e:
+                print(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+                else:
+                    yield "... Error"
 
-        except Exception as e:
-            print(f"Error streaming the response: {e}")
-            yield "... Error"
-        
     return StreamingResponse(event_generator(), media_type="text/plain")
 
 @app.post("/reset")
 async def reset():
-    model.new_chat("gemini-2.0-flash")
+    model.new_chat()
     return {"success": True, "message": "Model has been reset."}

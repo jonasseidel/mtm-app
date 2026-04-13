@@ -9,11 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class GeminiModel:
-    def __init__(self, system_prompt: str = "Du bist eine katze und kennst nur miau", model_name: str = "gemini-2.0-flash"):
+    def __init__(self, system_prompt: str = "Du bist eine katze und kennst nur miau", model_name: str = "gemini-2.5-flash"):
 
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
         self.system_prompt = system_prompt
+        self.model_name = model_name
         self.tools = [tools.getCurrentTemperature, tools.getCurrenttCo2Emission, tools.getCurrentPh]
         # Configure function calling mode
         
@@ -25,17 +26,20 @@ class GeminiModel:
         )'''
 
 
-        self.new_chat("gemini-2.5-flash")
+        self.new_chat()
 
-    def new_chat(self, model_name: str):
+    def new_chat(self, model_name: str = None):
         """Creates new chat session."""
+        if model_name:
+            self.model_name = model_name
         self.chat = self.client.chats.create(
-            model= model_name,
+            model=self.model_name,
             config = types.GenerateContentConfig(
                 system_instruction = self.system_prompt,
                 tools = self.tools,
                 #tool_config = self.tool_config,
-                temperature=0.0
+                temperature=0.0,
+                thinking_config=types.ThinkingConfig(thinking_budget=0)
             )
         )
         
@@ -52,18 +56,8 @@ class GeminiModel:
                     print("Max retries exceeded.")
                     return "Error: Unable to process the request."
 
-    def gen_stream(self, prompt: str, retries: int = 7):
-        for attempt in range(retries):
-            try:
-                response = self.chat.send_message_stream(prompt)
-                return response
-            except Exception as e:
-                print(f"Attempt {attempt + 1} failed: {e}")
-                if attempt < retries - 1:
-                    time.sleep(2 ** attempt)  # 1s, 2s, 4s
-                else:
-                    print("Max retries exceeded.")
-                    return "Error: Unable to process the request."
+    def gen_stream(self, prompt: str):
+        return self.chat.send_message_stream(prompt)
                 
     def print_chat_history(self):
         for i, msg in enumerate(self.chat.get_history()):
