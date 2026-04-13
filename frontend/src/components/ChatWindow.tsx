@@ -1,4 +1,4 @@
-import { useState, useEffect} from "react";
+import { useState, useEffect, useRef} from "react";
 import ChatWindowDisplay from "./ChatWindowDisplay";
 import EnterPromptField from "./EnterPromptField";
 
@@ -6,6 +6,9 @@ function ChatWindow() {
     //Maybe via an argument/Props later?
     //const initialMessage: [string, number][] = [["Hallo! Ich bin dein Moor-Experte. Was möchtest du über Moore wissen?",0]]
     const [messages, setMessages] = useState<[string, number][]>([]);
+    const [isStreaming, setIsStreaming] = useState(false);
+    const skipTyping = useRef(false);
+    const retrySignal = useRef(false);
     let streamEnabled = true;
     
     useEffect(() => {
@@ -75,62 +78,109 @@ function ChatWindow() {
     }
 
     const generateResponseStream = async (value : string) => {
-        
+
+        skipTyping.current = false;
+        retrySignal.current = false;
+        setIsStreaming(false);
         setMessages(prevMessages => [...prevMessages, ["",0]]);
-        try{
-            const res = await fetch("http://localhost:8000/chat/stream",
-                {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    },
-                body: JSON.stringify({ prompt: value }),
+
+        const queue: string[] = [];
+        const state = { apiDone: false };
+
+        // Producer: reads chunks from API and pushes to queue
+        const produce = async () => {
+            try {
+                const res = await fetch("http://localhost:8000/chat/stream", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: value }),
                 });
-            if (!res.ok) {
-                throw new Error("Network response was not ok: "+  res.body);
-            }else {console.log("Response was okay")}
-            if (!res.body) {
-                throw new Error("Response body is null");
-            }else {console.log("Body not null")}
+                if (!res.ok) throw new Error("Network response was not ok");
+                if (!res.body) throw new Error("Response body is null");
 
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();               // Decode binary stream to text
-            let done = false;
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let done = false;
 
-            while (!done) {
-                const { value, done: doneReading } = await reader.read();
-                done = doneReading;
-                await delay(50);
-                if (value) {
-                    const chunk = decoder.decode(value, { stream: true });
-                    if (chunk.includes("\x00RETRY\x00")) {
-                        // Backend is retrying — clear the partial bubble
-                        setMessages(prev => {
-                            const updated = [...prev];
-                            updated[updated.length - 1] = ["", updated[updated.length - 1][1]];
-                            return updated;
-                        });
-                    } else {
-                        let iter = 0;
-                        for(const char of chunk){
-                            iter++;
+                while (!done) {
+                    const { value: raw, done: doneReading } = await reader.read();
+                    done = doneReading;
+                    if (raw) {
+                        const chunk = decoder.decode(raw, { stream: true });
+                        if (chunk.includes("\x00RETRY\x00")) {
+                            retrySignal.current = true;
+                            queue.length = 0;
                             setMessages(prev => {
-                            const updated = [...prev];
-                            const [text, flag] = updated[updated.length - 1];
-                            updated[updated.length - 1] = [text + char, flag];
-                            return updated;
+                                const updated = [...prev];
+                                updated[updated.length - 1] = ["", updated[updated.length - 1][1]];
+                                return updated;
                             });
-                            await delay(7);
-                            if(iter%5 === 0) {scroll();}
+                        } else {
+                            queue.push(chunk);
                         }
                     }
                 }
-                scroll();
+                console.log("Done reading!");
+            } catch (error) {
+                console.log("Could not get full response");
+                queue.push("\x00ERROR\x00");
             }
-            console.log("Done reading!")
-        } catch (error) {
-            console.log("Could not get full response")
-        }
+            state.apiDone = true;
+            setIsStreaming(true); // API done → show skip button
+        };
+
+        // Consumer: animates text from queue character by character
+        const consume = async () => {
+            while (!state.apiDone || queue.length > 0) {
+                if (retrySignal.current) {
+                    retrySignal.current = false;
+                    continue;
+                }
+
+                if (queue.length === 0) {
+                    await delay(10);
+                    continue;
+                }
+
+                const chunk = queue.shift()!;
+
+                if (skipTyping.current) {
+                    setMessages(prev => {
+                        const updated = [...prev];
+                        const [text, flag] = updated[updated.length - 1];
+                        updated[updated.length - 1] = [text + chunk, flag];
+                        return updated;
+                    });
+                    continue;
+                }
+
+                for (let i = 0; i < chunk.length; i++) {
+                    if (retrySignal.current) break;
+                    if (skipTyping.current) {
+                        setMessages(prev => {
+                            const updated = [...prev];
+                            const [text, flag] = updated[updated.length - 1];
+                            updated[updated.length - 1] = [text + chunk.slice(i), flag];
+                            return updated;
+                        });
+                        break;
+                    }
+                    setMessages(prev => {
+                        const updated = [...prev];
+                        const [text, flag] = updated[updated.length - 1];
+                        updated[updated.length - 1] = [text + chunk[i], flag];
+                        return updated;
+                    });
+                    await delay(7);
+                    scroll();
+                }
+            }
+        };
+
+        produce(); // fire and forget — runs in parallel
+        await consume(); // wait for animation to finish
+
+        setIsStreaming(false);
 
         // If the backend signalled an error, show a red error bubble
         setMessages(prev => {
@@ -176,7 +226,7 @@ function ChatWindow() {
 
     return (
         <div className="vstack gap-3 p-2">       
-            <ChatWindowDisplay messages={messages} />
+            <ChatWindowDisplay messages={messages} isStreaming={isStreaming} onSkip={() => { skipTyping.current = true; }}/>
             <div className="bg-white w-50 fixed-bottom mx-auto">
                 <div className="invisible">
                     Empty
