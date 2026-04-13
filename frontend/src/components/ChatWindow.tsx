@@ -200,6 +200,7 @@ function ChatWindow() {
 
 
     const handleReset = async () => {
+        skipTyping.current = true;
         try {
             const res = await fetch("http://localhost:8000/reset", {
                 method: "POST",

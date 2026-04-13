@@ -11,32 +11,36 @@ interface EnterPromptFieldProps {
 
 function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: EnterPromptFieldProps) {
   const [value, setValue] = useState('');
-  const [disabled , setDisabled] = useState(false);
+  const [sendDisabled, setSendDisabled] = useState(false);
+  const [resetDisabled, setResetDisabled] = useState(false);
   const [lastSym , setLastSym] = useState('');
-  //const [rows, setRows] = useState(1);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  
+  const isSending = useRef(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     setValue(newValue);
-
   };
 
   const handleSend = async () => {
-    if (value.trim() !== '') {
-      setDisabled(true);
-      setValue(''); // Clear the input after sending
+    if (value.trim() !== '' && !isSending.current) {
+      isSending.current = true;
+      setSendDisabled(true);
+      setValue('');
       await onSend(value);
-      setDisabled(false);
+      setSendDisabled(false);
+      isSending.current = false;
     }
   }
 
   const handleReset = async () => {
-    setDisabled(true);
+    setResetDisabled(true);
+    setSendDisabled(true);
     setValue('');
     await onReset();
-    setDisabled(false);
+    setResetDisabled(false);
+    setSendDisabled(false);
   }
 
   const focusInput = () => {
@@ -77,8 +81,8 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
                     placeholder={placeholder}
                 />
             <div className="hstack gap-4 ">
-                <button className="btn btn-outline-secondary rounded-circle" type="button" onClick={handleReset} disabled={disabled}><i className="bi bi-arrow-repeat fs-5"></i></button>
-                <button className="btn btn-outline-primary rounded-circle ms-auto" type="button" onClick={handleSend} disabled={disabled}> <i className="bi bi-arrow-up fs-5"></i></button>
+                <button className="btn btn-outline-secondary rounded-circle" type="button" onClick={handleReset} disabled={resetDisabled}><i className="bi bi-arrow-repeat fs-5"></i></button>
+                <button className="btn btn-outline-primary rounded-circle ms-auto" type="button" onClick={handleSend} disabled={sendDisabled}> <i className="bi bi-arrow-up fs-5"></i></button>
             </div>
           </div>
         </div>
