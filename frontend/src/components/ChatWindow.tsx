@@ -103,32 +103,46 @@ function ChatWindow() {
                 await delay(50);
                 if (value) {
                     const chunk = decoder.decode(value, { stream: true });
-                    let iter = 0;
-                    for(const char of chunk){
-                        iter++;
+                    if (chunk.includes("\x00RETRY\x00")) {
+                        // Backend is retrying — clear the partial bubble
                         setMessages(prev => {
-                        const updated = [...prev];
-                        const [text, flag] = updated[updated.length - 1];
-                        updated[updated.length - 1] = [text + char, flag];
-                        return updated;
+                            const updated = [...prev];
+                            updated[updated.length - 1] = ["", updated[updated.length - 1][1]];
+                            return updated;
                         });
-                        await delay(7);
-                        if(iter%5 === 0) {scroll();} 
+                    } else {
+                        let iter = 0;
+                        for(const char of chunk){
+                            iter++;
+                            setMessages(prev => {
+                            const updated = [...prev];
+                            const [text, flag] = updated[updated.length - 1];
+                            updated[updated.length - 1] = [text + char, flag];
+                            return updated;
+                            });
+                            await delay(7);
+                            if(iter%5 === 0) {scroll();}
+                        }
                     }
-                    
                 }
                 scroll();
             }
             console.log("Done reading!")
         } catch (error) {
             console.log("Could not get full response")
-            setMessages(prev => {
-                        const updated = [...prev];
-                        const [text, flag] = updated[updated.length - 1];
-                        updated[updated.length - 1] = [text + " ... Error", flag];
-                        return updated;
-                    });
         }
+
+        // If the backend signalled an error, show a red error bubble
+        setMessages(prev => {
+            if (prev.length === 0) return prev;
+            const lastText = prev[prev.length - 1][0];
+            if (lastText.includes("\x00ERROR\x00")) {
+                const updated = [...prev];
+                updated[updated.length - 1] = ["High demand of the model (API Error)", 2];
+                return updated;
+            }
+            return prev;
+        });
 
         await delay(5);
         scroll();

@@ -12,21 +12,25 @@ function ChatWindowDisplay({messages}: ChatWindowProps) {
       <div className="container border rounded-4 min-vh-100 w-50 bg-light p-3">
         <div className="vstack gap-3 p-3 mx-auto">
           {messages.map(([message, source], index) =>
-            source % 2 === 1 ? (
+            source === 1 ? (
               <div className="card rounded-4 align-self-end" key={`${index}-question`} style={{ maxWidth: '85%' }}>
                 <div className="card-body">
                   <h6 className="card-title text-primary text-break">You</h6>
                   <ReactMarkdown>{message}</ReactMarkdown>
-                  
+                </div>
+              </div>
+            ) : source === 2 ? (
+              <div className="card rounded-4 align-self-start border-danger" key={`${index}-error`} style={{ maxWidth: '85%' }}>
+                <div className="card-body">
+                  <h6 className="card-title text-danger">Error</h6>
+                  <p className="text-danger mb-0">{message}</p>
                 </div>
               </div>
             ) : (
-              
               <div className="card rounded-4 align-self-start" key={`${index}-answer`} style={{ maxWidth: '85%' }}>
                 <div className="card-body">
                   <h6 className="card-title text-success">Bot</h6>
-                  {message ?  <ReactMarkdown >{message}</ReactMarkdown> : <div> <i className="bi bi-broadcast fs-5"></i> </div>}
-                  
+                  {message ? <ReactMarkdown>{message}</ReactMarkdown> : <div><i className="bi bi-broadcast fs-5"></i></div>}
                 </div>
               </div>
             )

@@ -47,9 +47,10 @@ async def chat_stream(message: Message):
             except Exception as e:
                 print(f"Attempt {attempt + 1} failed: {e}")
                 if attempt < retries - 1:
+                    yield "\x00RETRY\x00"
                     await asyncio.sleep(2 ** attempt)
                 else:
-                    yield "... Error"
+                    yield "\x00ERROR\x00"
 
     return StreamingResponse(event_generator(), media_type="text/plain")
 
