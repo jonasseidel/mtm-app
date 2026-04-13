@@ -15,7 +15,11 @@ class GeminiModel:
 
         self.system_prompt = system_prompt
         self.model_name = model_name
-        self.tools = [tools.getCurrentTemperature, tools.getCurrenttCo2Emission, tools.getCurrentPh]
+        self.tools = [
+            tools.getCurrentReadings,
+            tools.getHistoricalStats,
+            tools.getExtremeReading,
+        ]
         # Configure function calling mode
         
         #For some reason the model does not stop calling functions, so we disable it for now

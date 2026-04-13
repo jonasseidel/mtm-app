@@ -41,8 +41,9 @@ async def chat_stream(message: Message):
         for attempt in range(retries):
             try:
                 for chunk in model.gen_stream(message.prompt):
-                    print("Chunk:", chunk.text)
-                    yield chunk.text
+                    if chunk.text is not None:
+                        print("Chunk:", chunk.text)
+                        yield chunk.text
                 return
             except Exception as e:
                 print(f"Attempt {attempt + 1} failed: {e}")
