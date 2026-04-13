@@ -18,7 +18,6 @@ def _read_system_prompt(path: str) -> str:
 model = GeminiModel(system_prompt=_read_system_prompt("sys_prompt.txt"))
 
 app = FastAPI()
-print("Hey")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins
@@ -38,7 +37,7 @@ async def chat(message: Message):
 @app.post("/chat/stream")
 async def chat_stream(message: Message):
     async def event_generator():
-        # Simulating a streaming generation from your model
+        # simulating a streaming generation from the model
         try:
             for chunk in model.gen_stream(message.prompt):
                 print("Chunk:", chunk.text)
