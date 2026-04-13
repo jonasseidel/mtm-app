@@ -3,11 +3,15 @@ from google.genai import types
 import tools
 import traceback
 import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class GeminiModel:
     def __init__(self, system_prompt: str = "Du bist eine katze und kennst nur miau", model_name: str = "gemini-2.0-flash"):
 
-        self.client = genai.Client(api_key="REMOVED")
+        self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
         self.system_prompt = system_prompt
         self.tools = [tools.getCurrentTemperature, tools.getCurrenttCo2Emission, tools.getCurrentPh]
@@ -21,7 +25,7 @@ class GeminiModel:
         )'''
 
 
-        self.new_chat("gemini-2.0-flash")
+        self.new_chat("gemini-2.5-flash")
 
     def new_chat(self, model_name: str):
         """Creates new chat session."""
