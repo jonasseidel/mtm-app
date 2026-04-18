@@ -1,16 +1,16 @@
+from datetime import datetime, timedelta, timezone
 from database import query
 
 VALID_LOCATIONS = {"north", "center", "south"}
 VALID_SENSORS   = {"temperature", "ph", "co2"}
 
-TIME_WINDOW_SQL = {
-    "last_week":     "-7 days",
-    "last_month":    "-1 month",
-    "last_3_months": "-3 months",
-    "last_6_months": "-6 months",
-    "last_year":     "-1 year",
-    "last_2_years":  "-2 years",
-}
+# replaces None with default values for start and end dates. start datre defaults to 30 day ago, end date defaults to today.
+def _defaults(start, end):
+    now = datetime.now(timezone.utc)
+    end   = end   or now.strftime("%Y-%m-%d")
+    start = start or (now - timedelta(days=30)).strftime("%Y-%m-%d")
+    return start, end
+
 
 def getCurrentReadings(location: str = "center") -> dict:
     """Gets the latest temperature, pH, and CO2 readings for a marsh location.
@@ -40,64 +40,71 @@ def getCurrentReadings(location: str = "center") -> dict:
     return {row["sensor_type"]: row["value"] for row in rows}
 
 
-def getExtremeReading(sensor_type: str, extreme: str, location: str = "center", time_window: str = "last_month") -> dict:
+def getExtremeReading(sensor_type: str, extreme: str, location: str = "center",
+                      start: str = None, end: str = None) -> dict:
     """Gets the highest or lowest recorded value for a sensor along with the timestamp it occurred.
 
     Args:
         sensor_type: The measurement to query. One of 'temperature', 'ph', 'co2'.
         extreme: Whether to find the highest or lowest reading. One of 'max', 'min'.
         location: The marsh zone to query. One of 'north', 'center', 'south'. Defaults to 'center'.
-        time_window: Time period to search within. One of 'last_week', 'last_month', 'last_3_months', 'last_6_months', 'last_year', 'last_2_years'. Defaults to 'last_month'.
+        start: Start date (ISO 8601, e.g. '2024-06-01'). Defaults to 30 days ago.
+        end: End date (ISO 8601, e.g. '2024-09-01'). Defaults to today.
 
     Returns:
         A dict with 'value' and 'timestamp' of the extreme reading.
     """
     if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
         return None
-    window = TIME_WINDOW_SQL.get(time_window, "-1 month")
+    # replace None with default values for start and end. 
+    start, end = _defaults(start, end)
     order = "DESC" if extreme == "max" else "ASC"
     rows = query(
         f"""
         SELECT value, timestamp
         FROM measurements
-        WHERE sensor_type = ? AND location = ? AND timestamp >= datetime('now', ?)
+        WHERE sensor_type = ? AND location = ? AND timestamp BETWEEN ? AND ?
         ORDER BY value {order}
         LIMIT 1
         """,
-        (sensor_type, location, window)
+        (sensor_type, location, start, end)
     )
     if not rows:
         return None
     return {
-        "value": rows[0]["value"],
+        "value":     rows[0]["value"],
         "timestamp": rows[0]["timestamp"],
     }
 
-
-def getHistoricalStats(sensor_type: str, location: str = "center", time_window: str = "last_month") -> dict:
+def getHistoricalStats(sensor_type: str, location: str = "center", start: str = None, end: str = None) -> dict:
     """Gets min, max, and average for a sensor over a time period at a marsh location.
 
     Args:
         sensor_type: The measurement to query. One of 'temperature', 'ph', 'co2'.
         location: The marsh zone to query. One of 'north', 'center', 'south'. Defaults to 'center'.
-        time_window: Time period to analyse. One of 'last_week', 'last_month', 'last_3_months', 'last_6_months', 'last_year', 'last_2_years'. Defaults to 'last_month'.
+        start: Start date (e.g. '2024-06-01'). Defaults to 30 days ago.
+        end: End date (e.g. '2024-09-01'). Defaults to today.
 
     Returns:
         A dict with 'min', 'max', and 'avg' for the requested sensor and period.
     """
     if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
         return None
-    window = TIME_WINDOW_SQL.get(time_window, "-1 month")
+    # replace None with default values for star t and end. 
+    start, end = _defaults(start, end)
     rows = query(
         """
         SELECT MIN(value) as min, MAX(value) as max, AVG(value) as avg
         FROM measurements
-        WHERE sensor_type = ? AND location = ? AND timestamp >= datetime('now', ?)
+        WHERE sensor_type = ? AND location = ? AND timestamp BETWEEN ? AND ?
         """,
-        (sensor_type, location, window)
+        (sensor_type, location, start, end)
     )
     if not rows or rows[0]["avg"] is None:
         return None
+    
+    print(f"Stats for {sensor_type} at {location} from {start} to {end}: min={rows[0]['min']}, max={rows[0]['max']}, avg={rows[0]['avg']}")
+
     return {
         "min": round(rows[0]["min"], 2),
         "max": round(rows[0]["max"], 2),
