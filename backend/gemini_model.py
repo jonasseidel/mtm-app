@@ -7,11 +7,15 @@ from datetime import datetime, timezone
 import os
 from dotenv import load_dotenv
 
+# loading api key from .env file
 load_dotenv()
 
 class GeminiModel:
     def __init__(self, system_prompt: str = "Du bist eine katze und kennst nur miau", model_name: str = "gemini-2.5-flash"):
 
+        if not os.getenv("GEMINI_API_KEY"):
+            raise ValueError("Environment variable 'GEMINI_API_KEY' is not set. Create a .env file with GEMINI_API_KEY=your_api_key_here")
+        
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
         # give model current date so it can use the tools to query for current readings and stats better.
