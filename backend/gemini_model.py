@@ -3,6 +3,7 @@ from google.genai import types
 import tools
 import traceback
 import time
+from datetime import datetime, timezone
 import os
 from dotenv import load_dotenv
 
@@ -13,7 +14,10 @@ class GeminiModel:
 
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-        self.system_prompt = system_prompt
+        # give model current date so it can use the tools to query for current readings and stats better.
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self.system_prompt = system_prompt + f"\n\nHeute ist der {today}."
+
         self.model_name = model_name
         self.tools = [
             tools.getCurrentReadings,
