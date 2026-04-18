@@ -1,5 +1,6 @@
 
 import ReactMarkdown from 'react-markdown';
+import './ChatWindow.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 interface ChatWindowProps {
@@ -11,7 +12,7 @@ interface ChatWindowProps {
 function ChatWindowDisplay({messages, isStreaming, onSkip}: ChatWindowProps) {
 
   return (
-      <div className="container border rounded-4 min-vh-100 w-50 bg-light p-3">
+      <div className="container border rounded-4 min-vh-100 bg-light p-3 chat-container">
         <div className="vstack gap-3 p-3 mx-auto">
           {messages.map(([message, source], index) =>
             source === 1 ? (

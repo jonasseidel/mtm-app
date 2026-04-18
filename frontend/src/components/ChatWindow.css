@@ -1,9 +1,29 @@
 .chat-box {
+  width: 90%;
+}
+
+@media (min-width: 768px) {
+  .chat-box {
+    width: 50%;
+  }
+}
+
+.chat-box {
   background-color: #f0f0f0;
   border-radius: 20px;
   padding: 14px 20px;
   cursor: text; /* 👈 makes whole box show the text cursor */
   transition: all 0.2s ease;
+}
+
+.chat-container {
+  width: 90%;
+}
+
+@media (min-width: 768px) {
+  .chat-container {
+    width: 50%;
+  }
 }
 
 .chat-input {

@@ -237,7 +237,7 @@ function ChatWindow() {
     return (
         <div className="vstack gap-3 p-2">       
             <ChatWindowDisplay messages={messages} isStreaming={isStreaming} onSkip={() => { skipTyping.current = true; }}/>
-            <div className="bg-white w-50 fixed-bottom mx-auto">
+            <div className="bg-white fixed-bottom mx-auto chat-container">
                 <div className="invisible">
                     Empty
                 </div>

@@ -58,7 +58,7 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
 
   return (
 
-        <div className='bg-light w-50 rounded-4 justify-content-center fixed-bottom mb-1 chat-box mx-auto w-50 border p-2' onClick={focusInput}>
+        <div className='bg-light rounded-4 justify-content-center fixed-bottom mb-1 chat-box mx-auto border p-2' onClick={focusInput}>
           <div className="vstack gap-2 mx-auto align-items-center">
             <TextareaAutosize
                     className="d-flex bg-light w-100 chat-input p-2 form-control"
