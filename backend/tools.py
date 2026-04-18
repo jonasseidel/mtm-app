@@ -1,11 +1,15 @@
 from database import query
 
+VALID_LOCATIONS = {"north", "center", "south"}
+VALID_SENSORS   = {"temperature", "ph", "co2"}
+
 TIME_WINDOW_SQL = {
     "last_week":     "-7 days",
     "last_month":    "-1 month",
     "last_3_months": "-3 months",
     "last_6_months": "-6 months",
     "last_year":     "-1 year",
+    "last_2_years":  "-2 years",
 }
 
 def getCurrentReadings(location: str = "center") -> dict:
@@ -17,6 +21,8 @@ def getCurrentReadings(location: str = "center") -> dict:
     Returns:
         A dict with the most recent value for each sensor type: temperature (°C), ph, co2 (ppm).
     """
+    if location not in VALID_LOCATIONS:
+        return None
     rows = query(
         """
         SELECT sensor_type, value
@@ -41,11 +47,13 @@ def getExtremeReading(sensor_type: str, extreme: str, location: str = "center", 
         sensor_type: The measurement to query. One of 'temperature', 'ph', 'co2'.
         extreme: Whether to find the highest or lowest reading. One of 'max', 'min'.
         location: The marsh zone to query. One of 'north', 'center', 'south'. Defaults to 'center'.
-        time_window: Time period to search within. One of 'last_week', 'last_month', 'last_3_months', 'last_6_months', 'last_year'. Defaults to 'last_month'.
+        time_window: Time period to search within. One of 'last_week', 'last_month', 'last_3_months', 'last_6_months', 'last_year', 'last_2_years'. Defaults to 'last_month'.
 
     Returns:
         A dict with 'value' and 'timestamp' of the extreme reading.
     """
+    if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
+        return None
     window = TIME_WINDOW_SQL.get(time_window, "-1 month")
     order = "DESC" if extreme == "max" else "ASC"
     rows = query(
@@ -72,11 +80,13 @@ def getHistoricalStats(sensor_type: str, location: str = "center", time_window: 
     Args:
         sensor_type: The measurement to query. One of 'temperature', 'ph', 'co2'.
         location: The marsh zone to query. One of 'north', 'center', 'south'. Defaults to 'center'.
-        time_window: Time period to analyse. One of 'last_week', 'last_month', 'last_3_months', 'last_6_months', 'last_year'. Defaults to 'last_month'.
+        time_window: Time period to analyse. One of 'last_week', 'last_month', 'last_3_months', 'last_6_months', 'last_year', 'last_2_years'. Defaults to 'last_month'.
 
     Returns:
         A dict with 'min', 'max', and 'avg' for the requested sensor and period.
     """
+    if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
+        return None
     window = TIME_WINDOW_SQL.get(time_window, "-1 month")
     rows = query(
         """
