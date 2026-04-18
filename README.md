@@ -1,7 +1,19 @@
 # mtm-app
-Conversational AI for "Mission to Marsh". Private demo version which is not yet connected to any database. Unofficial
 
-To run without docker:
+Prototype for a digital twin of a marsh. 
 
-in frontend: npm run dev
-in backend: uvicorn main:app --reload
+Stack:
+- Frontend via React
+- Backend using fastAPI, GeminiAPI, function-calling
+- sqllite database for marsh sensor data that the llm can access
+
+Features:
+- Web application to chat with the marsh
+- Answers questions about marshes, ecosystems, climate
+- Marsh can access its current sensor data and historic data and answer questions regarding its current state or current trends
+
+
+To run without docker locally:
+
+in /frontend: npm run dev
+in /backend: uvicorn main:app --reload
