@@ -21,6 +21,7 @@ def getCurrentReadings(location: str = "center") -> dict:
     Returns:
         A dict with the most recent value for each sensor type: temperature (°C), ph, co2 (ppm).
     """
+    print(f"[Tool] getCurrentReadings(location={location})")
     if location not in VALID_LOCATIONS:
         return None
     rows = query(
@@ -54,9 +55,10 @@ def getExtremeReading(sensor_type: str, extreme: str, location: str = "center",
     Returns:
         A dict with 'value' and 'timestamp' of the extreme reading.
     """
+    print(f"[Tool] getExtremeReading(sensor_type={sensor_type}, extreme={extreme}, location={location}, start={start}, end={end})")
     if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
         return None
-    # replace None with default values for start and end. 
+    # replace None with default values for start and end.
     start, end = _defaults(start, end)
     order = "DESC" if extreme == "max" else "ASC"
     rows = query(
@@ -88,9 +90,9 @@ def getHistoricalStats(sensor_type: str, location: str = "center", start: str = 
     Returns:
         A dict with 'min', 'max', and 'avg' for the requested sensor and period.
     """
+    print(f"[Tool] getHistoricalStats(sensor_type={sensor_type}, location={location}, start={start}, end={end})")
     if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
         return None
-    # replace None with default values for star t and end. 
     start, end = _defaults(start, end)
     rows = query(
         """
@@ -110,3 +112,80 @@ def getHistoricalStats(sensor_type: str, location: str = "center", start: str = 
         "max": round(rows[0]["max"], 2),
         "avg": round(rows[0]["avg"], 2),
     }
+
+def getTrend(sensor_type: str, location: str = "center",
+             start: str = None, end: str = None) -> dict:
+    """Calculates the trend for a sensor over a time period using least squares. 
+    May be biased due to seasonality and other factors. For example, a trend over one year or two 
+    year maybe strongly influenced by seasonal patterns in the data. 
+    A trend over a month maybe interesting to see seasonal patterns. Over mutiple years,
+    there may be a long term trend noticable.
+    
+    Args:
+        sensor_type: The measurement to analyse. One of 'temperature', 'ph', 'co2'.
+        location: The marsh zone to query. One of 'north', 'center', 'south'. Defaults to 'center'.
+        start: Start date (e.g. '2024-06-01'). Defaults to 30 days ago.
+        end: End date (e.g. '2024-09-01'). Defaults to today.
+
+    Returns:
+        A dict with:
+          - 'trend_total':   total change in value over the time period of the regression line
+          - 'direction':      'rising', 'falling', or 'stable'
+    """
+    print(f"[Tool] getTrend(sensor_type={sensor_type}, location={location}, start={start}, end={end})")
+    if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
+        return None
+    start, end = _defaults(start, end)
+    rows = query(
+        """
+        SELECT strftime('%s', timestamp) AS ts_epoch, value
+        FROM measurements
+        WHERE sensor_type = ? AND location = ? AND timestamp BETWEEN ? AND ?
+        ORDER BY timestamp ASC
+        """,
+        (sensor_type, location, start, end)
+    )
+    if len(rows) < 2:
+        return None
+
+    xs = [float(r["ts_epoch"]) for r in rows]
+    x0 = xs[0]
+    xs = [x - x0 for x in xs] # normalize to avoid too large numbers as epoch timestamps are in seconds 
+    ys = [r["value"] for r in rows]
+    n = len(xs)
+
+    x_mean = sum(xs) / n
+    y_mean = sum(ys) / n
+    num   = sum((x - x_mean) * (y - y_mean) for x, y in zip(xs, ys))
+    denom = sum((x - x_mean) ** 2 for x in xs)
+
+    slope = num / denom if denom != 0 else 0.0
+    timeframe = max(xs) - min(xs) 
+    trend_total = slope * timeframe
+
+    #slope_per_day    = slope_per_second * 86_400
+    #slope_per_month  = slope_per_day * 30
+    #slope_per_year   = slope_per_day * 365
+
+
+
+    if abs(slope * 86_400 *30) < 0.01:
+        direction = "stable"
+    elif slope > 0:
+        direction = "rising"
+    else:
+        direction = "falling"
+
+    return {
+        "trend_total" : trend_total,
+        "direction": direction
+    }
+    # return {
+    #     "slope_per_day":   round(slope_per_day,   6),
+    #     "slope_per_month": round(slope_per_month,  4),
+    #     "slope_per_year":  round(slope_per_year,   4),
+    #     "direction":       direction,
+    #     "data_points":     n,
+    # }
+
+

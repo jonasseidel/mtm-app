@@ -23,6 +23,7 @@ class GeminiModel:
             tools.getCurrentReadings,
             tools.getHistoricalStats,
             tools.getExtremeReading,
+            tools.getTrend
         ]
         # Configure function calling mode
         
