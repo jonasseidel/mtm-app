@@ -42,7 +42,7 @@ async def chat_stream(message: Message):
             try:
                 for chunk in model.gen_stream(message.prompt):
                     if chunk.text is not None:
-                        print("Chunk:", chunk.text)
+                        #print("Chunk:", chunk.text)
                         yield chunk.text
                 return
             except Exception as e:
