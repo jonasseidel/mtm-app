@@ -28,19 +28,28 @@ app.add_middleware(
 
 class Message(BaseModel):
     prompt: str
+    session_id: str
 
 @app.post("/chat")
 async def chat(message: Message):
-    res = model.gen(message.prompt)
+    if not model.is_session(message.session_id):
+        model.create_session(message.session_id)
+        print(f"Created new session with id {message.session_id}")
+    
+    res = model.gen(message.session_id, message.prompt)
     return {"response": res}
 
 @app.post("/chat/stream")
 async def chat_stream(message: Message):
+    if not model.is_session(message.session_id):
+        model.create_session(message.session_id)
+        print(f"Created new session with id {message.session_id}")
+
     async def event_generator():
         retries = 5
         for attempt in range(retries):
             try:
-                for chunk in model.gen_stream(message.prompt):
+                for chunk in model.gen_stream(message.session_id, message.prompt):
                     if chunk.text is not None:
                         #print("Chunk:", chunk.text)
                         yield chunk.text
@@ -56,6 +65,6 @@ async def chat_stream(message: Message):
     return StreamingResponse(event_generator(), media_type="text/plain")
 
 @app.post("/reset")
-async def reset():
+async def reset(): # TODO needs session_id to only reset that session
     model.new_chat()
     return {"success": True, "message": "Model has been reset."}

@@ -6,6 +6,14 @@ function ChatWindow() {
     //Maybe via an argument/Props later?
     //const initialMessage: [string, number][] = [["Hallo! Ich bin dein Moor-Experte. Was möchtest du über Moore wissen?",0]]
     const [messages, setMessages] = useState<[string, number][]>([]);
+    const [sessionId] = useState<string>(() => {
+        let id = localStorage.getItem("session_id");
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem("session_id", id);
+        }
+        return id;
+    });
     const [isStreaming, setIsStreaming] = useState(false);
     const skipTyping = useRef(false);
     const retrySignal = useRef(false);
@@ -29,13 +37,13 @@ function ChatWindow() {
         try{
 
             console.log("Awaiting response to", message);
-            const res = await fetch('http://localhost:8000/chat',
+            const res = await fetch('/chat',
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({prompt: message})
+                    body: JSON.stringify({prompt: message, session_id: sessionId}),
                 }
             );
             console.log("Response received")
@@ -90,10 +98,10 @@ function ChatWindow() {
         // Producer: reads chunks from API and pushes to queue
         const produce = async () => {
             try {
-                const res = await fetch("http://localhost:8000/chat/stream", {
+                const res = await fetch("/chat/stream", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt: value }),
+                    body: JSON.stringify({ prompt: value, session_id: sessionId }),
                 });
                 if (!res.ok) throw new Error("Network response was not ok");
                 if (!res.body) throw new Error("Response body is null");
@@ -202,11 +210,12 @@ function ChatWindow() {
     const handleReset = async () => {
         skipTyping.current = true;
         try {
-            const res = await fetch("http://localhost:8000/reset", {
+            const res = await fetch("/reset", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+                body: JSON.stringify({session_id: sessionId}),
             }
             );
             const data = await res.json();
