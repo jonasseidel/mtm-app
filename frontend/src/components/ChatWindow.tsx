@@ -238,7 +238,7 @@ function ChatWindow() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({session_id: sessionId}),
+                body: JSON.stringify({prompt: "", session_id: sessionId}),
             }
             );
             const data = await res.json();
