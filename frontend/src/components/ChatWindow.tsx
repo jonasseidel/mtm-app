@@ -5,7 +5,7 @@ import EnterPromptField from "./EnterPromptField";
 function ChatWindow() {
     //Maybe via an argument/Props later?
     //const initialMessage: [string, number][] = [["Hallo! Ich bin dein Moor-Experte. Was möchtest du über Moore wissen?",0]]
-    const [messages, setMessages] = useState<[string, number][]>([]);
+    const [messages, setMessages] = useState<[string, number, string?][]>([]);
     const [sessionId] = useState<string>(() => {
         let id = localStorage.getItem("session_id");
         if (!id) {
@@ -17,6 +17,7 @@ function ChatWindow() {
     const [isStreaming, setIsStreaming] = useState(false);
     const skipTyping = useRef(false);
     const retrySignal = useRef(false);
+    const pendingImage = useRef<string | null>(null);
     let streamEnabled = true;
     
     useEffect(() => {
@@ -115,6 +116,7 @@ function ChatWindow() {
                     done = doneReading;
                     if (raw) {
                         const chunk = decoder.decode(raw, { stream: true });
+                        console.log("chunk:", JSON.stringify(chunk));
                         if (chunk.includes("\x00RETRY\x00")) {
                             retrySignal.current = true;
                             queue.length = 0;
@@ -123,6 +125,14 @@ function ChatWindow() {
                                 updated[updated.length - 1] = ["", updated[updated.length - 1][1]];
                                 return updated;
                             });
+                        } else if (chunk.includes("\x00IMAGE_URL:")) {
+                            // first extract parts of the chunk that dont belong to the url and thus not lost.
+                            const text_in_chunk = chunk.replace(/\x00IMAGE_URL:(.+?)\x00/, '');
+                            queue.push(text_in_chunk);
+                            const url = chunk.match(/\x00IMAGE_URL:(.+?)\x00/)?.[1];
+                            if (url) {
+                                pendingImage.current = url;
+                            }
                         } else {
                             queue.push(chunk);
                         }
@@ -188,6 +198,19 @@ function ChatWindow() {
         produce(); // fire and forget — runs in parallel
         await consume(); // wait for animation to finish
 
+        delay
+        if (pendingImage.current) {
+            const imageUrl = pendingImage.current;
+            pendingImage.current = null;
+            setMessages(prev => {
+                const updated = [...prev];
+                const [text, flag] = updated[updated.length - 1];
+                updated[updated.length - 1] = [text, flag, imageUrl];
+                return updated;
+            });
+        } else {
+            console.log("Consumer: No image chunk received");
+        }
         setIsStreaming(false);
 
         // If the backend signalled an error, show a red error bubble

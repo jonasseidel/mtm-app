@@ -1,6 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from database import query
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import os
+import uuid
+from matplotlib.dates import AutoDateLocator, ConciseDateFormatter
+from datetime import datetime as dt
+
 VALID_LOCATIONS = {"north", "center", "south"}
 VALID_SENSORS   = {"temperature", "ph", "co2"}
 
@@ -188,4 +196,45 @@ def getTrend(sensor_type: str, location: str = "center",
     #     "data_points":     n,
     # }
 
+CHARTS_DIR = "static/charts"
+
+def generateChart(sensor_type: str, location: str = "center", start: str = None, end: str = None):
+    """
+    Generates a line chart saved to disk and returns its URL path.
+    Not directly provided as a tool — a per-session wrapper calls this and stores the URL in pending_images.
+    """
+    print(f"[Tool] getChart(sensor_type={sensor_type}, location={location}, start={start}, end={end})")
+    if location not in VALID_LOCATIONS or sensor_type not in VALID_SENSORS:
+        return None
+    start, end = _defaults(start, end)
+    rows = query(
+        """
+        SELECT timestamp, value
+        FROM measurements
+        WHERE sensor_type = ? AND location = ? AND timestamp BETWEEN ? AND ?
+        ORDER BY timestamp ASC
+        """,
+        (sensor_type, location, start, end)
+    )
+    if not rows:
+        return None
+
+    timestamps = [dt.fromisoformat(row["timestamp"]) for row in rows]
+    values     = [row["value"] for row in rows]
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(timestamps, values, marker='o', markersize=2)
+    locator = AutoDateLocator(maxticks=8)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(ConciseDateFormatter(locator))
+    ax.set_ylabel(sensor_type)
+    fig.tight_layout()
+
+    os.makedirs(CHARTS_DIR, exist_ok=True)
+    filename = f"{uuid.uuid4()}.png"
+    filepath = os.path.join(CHARTS_DIR, filename)
+    fig.savefig(filepath, format='png')
+    plt.close(fig)
+    print(f"[Tool] generateChart: saved to {filepath}")
+
+    return f"/static/charts/{filename}"
 

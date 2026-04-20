@@ -9,6 +9,7 @@ export default defineConfig({
     proxy: {
       '/chat': 'http://localhost:8000',
       '/reset': 'http://localhost:8000',
+      '/static': 'http://localhost:8000',
     }
   }
 })

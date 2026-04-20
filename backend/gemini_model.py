@@ -31,6 +31,7 @@ class GeminiModel:
         ]
 
         self.sessions: dict[str, genai.chats.Chat] = {}
+        self.pending_images: dict[str, str] = {}
 
         # Configure function calling mode
         #For some reason the model does not stop calling functions, so we disable it for now
@@ -43,12 +44,31 @@ class GeminiModel:
 
     def create_session(self, session_id: str):
         "Create new Session with given id. If already exists, throws error."
+
+        # first define wrapper for getChart that calls the function and stores the resulting image in pending_images depending on session_id.
+        def getChart(sensor_type: str, location: str = "center", start: str = None, end: str = None):
+            '''
+            Generate and displays a chart of all data points for a sensor type and location over a time period.
+
+            Args:
+                sensor_type: The measurement to query. One of 'temperature', 'ph', 'co2'.
+                location: The marsh zone to query. One of 'north', 'center', 'south'. Defaults to 'center'.
+                start: Start date (e.g. '2024-06-01'). Defaults to 30 days ago.
+                end: End date (e.g. '2024-09-01'). Defaults to today.
+
+            Returns:
+                Nothing. The resulting image is displayed to the user and appended to your next text response (displayed above your next text)
+            '''
+            image = tools.generateChart(sensor_type, location, start, end)
+            self.pending_images[session_id] = image
+            return {}
+        
         if session_id not in self.sessions:
             self.sessions[session_id] = self.client.chats.create(
                 model=self.model_name,
                 config = types.GenerateContentConfig(
                     system_instruction = self.system_prompt,
-                    tools = self.tools,
+                    tools = self.tools + [getChart],
                     #tool_config = self.tool_config,
                     temperature=0.0,
                     thinking_config=types.ThinkingConfig(thinking_budget=0)
@@ -56,6 +76,14 @@ class GeminiModel:
             )
         else:
            raise ValueError(f"Session with id {session_id} already exists.")
+    
+    def delete_session(self, session_id: str):
+        "Delete session with given id. If not exists, throws error."
+        if session_id in self.sessions:
+            self.sessions.pop(session_id, None)
+            self.pending_images.pop(session_id, None)
+        else:
+            raise ValueError(f"Session with id {session_id} does not exist.")
         
     def get_session(self, session_id: str):
         "Get session by id. If not exists, throws error."
@@ -67,6 +95,14 @@ class GeminiModel:
     def is_session(self, session_id: str):
         "Check if session with id exists."
         return session_id in self.sessions
+
+    def is_pending_image(self, session_id: str):
+        "Check if there is a pending image for the session with id."
+        return session_id in self.pending_images
+
+    def get_pending_image(self, session_id: str):
+        "Get the pending image for the session with id."
+        return self.pending_images.get(session_id)
     
     # def new_chat(self, model_name: str = None):
     #     """Creates new chat session."""
