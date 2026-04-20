@@ -12,8 +12,15 @@ Features:
 - Answers questions about marshes, ecosystems, climate
 - Marsh can access its current sensor data and historic data and answer questions regarding its current state or current trends
 
+Example:
 
-To run without docker locally:
+<p align="center">
+    <img src="example.png" width="600">
+</p>
+
+To run locally:
 
 in /frontend: npm run dev
 in /backend: uvicorn main:app --reload
+
+Or using docker.
