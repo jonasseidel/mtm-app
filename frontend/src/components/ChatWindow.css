@@ -94,3 +94,28 @@
 .mtm-icon-btn-primary:hover {
   background: var(--mtm-green-400);
 }
+
+/* Message bubbles — same cube border/shadow as the rest of the app, just
+   thinner. --mtm-bubble-color lets error bubbles (red) reuse the same
+   styling with a different color. */
+.mtm-bubble {
+  position: relative;
+  --mtm-bubble-color: var(--mtm-green-700);
+  border: 1px solid var(--mtm-bubble-color) !important; /* override bootstrap .card's default border */
+  box-shadow: -1px 1px 0 0 var(--mtm-bubble-color);
+}
+
+.mtm-bubble-error {
+  --mtm-bubble-color: #dc3545; /* bootstrap's "danger" red, matches the old border-danger tone */
+}
+
+/* Sharpen just the corner pointing at the sender (bottom-left for the bot,
+   bottom-right for you) — a small nod to a speech-bubble shape without an
+   actual tail. */
+.mtm-bubble-bot {
+  border-bottom-left-radius: 4px !important;
+}
+
+.mtm-bubble-user {
+  border-bottom-right-radius: 4px !important;
+}
