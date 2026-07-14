@@ -1,0 +1,87 @@
+.mtm-landing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.mtm-landing-card {
+  max-width: 640px;
+  width: 100%;
+}
+
+.mtm-landing-card h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--mtm-green-900);
+  margin-bottom: 8px;
+}
+
+.mtm-landing-card .lede {
+  font-size: 16px;
+  color: var(--mtm-muted);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.mtm-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mtm-steps li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--mtm-green-200);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.mtm-steps .step-num {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mtm-green-500);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mtm-steps .step-text strong {
+  color: var(--mtm-green-900);
+}
+
+.mtm-steps .step-text p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--mtm-muted);
+}
+
+.mtm-start-btn {
+  background: var(--mtm-green-500);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 20px rgba(64, 145, 108, 0.28);
+}
+
+.mtm-start-btn:hover {
+  background: var(--mtm-green-400);
+  transform: translateY(-1px);
+}
