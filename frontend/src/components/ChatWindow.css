@@ -32,3 +32,12 @@
   box-shadow: none !important;
   background-color: transparent; /* Optional */
 }
+
+/* .chat-box uses bootstrap's fixed-bottom (position:fixed; left:0; right:0),
+   which ignores the sidebar's grid column. Offset it so it centers in the
+   remaining space instead of spanning under the sidebar. */
+@media (min-width: 901px) {
+  .chat-box {
+    left: var(--mtm-sidebar-width, 240px);
+  }
+}

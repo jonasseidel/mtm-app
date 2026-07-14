@@ -1,0 +1,63 @@
+/* MTM color scheme: bright, white-based, with a soft green fade.
+   Sidebar carries the saturated green; the main content stays airy/light. */
+:root {
+  --mtm-green-900: #1b4332;
+  --mtm-green-700: #2d6a4f;
+  --mtm-green-500: #40916c;
+  --mtm-green-400: #52b788;
+  --mtm-green-200: #b7e4c7;
+  --mtm-green-100: #eafaf0;
+  --mtm-ink: #1c2b23;
+  --mtm-muted: #5c7268;
+  --mtm-sidebar-width: 240px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Always reserve the scrollbar's width, even on pages short enough not to
+     need one (landing) — otherwise switching to/from a scrolling page (chat)
+     shifts the whole layout sideways by the scrollbar's width. */
+  overflow-y: scroll;
+}
+
+body {
+  margin: 0;
+  color: var(--mtm-ink);
+  background: linear-gradient(180deg, #ffffff 0%, #f6fdf9 55%, var(--mtm-green-100) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.mtm-shell {
+  min-height: 100vh;
+}
+
+.mtm-main {
+  min-height: 100vh;
+  position: relative;
+  margin-left: var(--mtm-sidebar-width);
+}
+
+@keyframes mtm-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mtm-fade-in {
+  animation: mtm-fade-in 0.5s ease both;
+}
+
+@media (max-width: 900px) {
+  .mtm-main {
+    margin-left: 0;
+  }
+}
