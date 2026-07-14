@@ -1,21 +1,52 @@
-version: '3.8'
+# mtm-webapp deployment — joins the SAME shared front door as ayto-webapp.
+#
+# Architecture (see homelab/decisions.md, 2026-07-14):
+#   nginx-proxy (owned by ayto-webapp/app/docker-compose.yml, NOT this file)
+#                          -> front door: routes by VIRTUAL_HOST, owns 80/443,
+#                             terminates TLS using the shared Cloudflare origin cert
+#   mtm-frontend (nginx)   -> serves the React build, proxies /chat + /chat/stream
+#                             + /reset + /static -> backend
+#   mtm-backend  (FastAPI) -> API only, internal (no public VIRTUAL_HOST)
+#
+# PRODUCTION ONLY — do not run this locally (needs the external `web-proxy`
+# network + a running nginx-proxy). For local container testing use:
+#   docker compose -f docker-compose.local.yml up --build
+#
+# Prereqs on the server (one-time, done alongside ayto-webapp's migration to
+# the named network — see homelab/decisions.md 2026-07-14):
+#   - `docker network create web-proxy` (external network both apps join)
+#   - ayto-webapp's docker-compose.yml already running on that network
+#   - DNS: app2.j-seidel.dev -> VPS, Cloudflare PROXIED (orange), SSL/TLS = Full (strict)
+#   - the Cloudflare origin cert already mounted into nginx-proxy by ayto-webapp's
+#     stack (covers *.j-seidel.dev, so no new cert needed)
+#   - backend/.env with GEMINI_API_KEY (gitignored, create manually on the server)
+
+networks:
+  proxy:
+    name: web-proxy
+    external: true
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
+  mtm-frontend:
+    build: ./frontend
+    container_name: mtm-frontend
     depends_on:
-      - frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:80"
-    volumes:
-      - ./frontend:/app
+      - mtm-backend
+    environment:
+      VIRTUAL_HOST: app2.j-seidel.dev
+      VIRTUAL_PORT: 80
+      CERT_NAME: j-seidel.dev
+    restart: unless-stopped
+    networks:
+      - proxy
+
+  mtm-backend:
+    build: ./backend
+    container_name: mtm-backend
+    env_file:
+      - ./backend/.env
+    expose:
+      - "8000"                           # reachable only on the proxy network
+    restart: unless-stopped
+    networks:
+      - proxy

@@ -1,0 +1,31 @@
+# LOCAL container test — the two app containers only, NO production front door
+# (no nginx-proxy, no domain, no TLS). Publishes the frontend on
+# http://localhost:3000 so you can verify the real container wiring (nginx
+# serving the build, /chat + /chat/stream + /reset + /static -> backend proxy,
+# SPA fallback) before deploying.
+#
+#   docker compose -f docker-compose.local.yml up --build
+#   -> open http://localhost:3000
+#
+# Services share compose's default network, so the frontend's nginx can reach
+# the backend by its service name (proxy_pass http://mtm-backend:8000). Same
+# service names as the production docker-compose.yml on purpose, so nginx.conf
+# doesn't need to differ between the two.
+
+services:
+  mtm-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+  mtm-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - mtm-backend
