@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from gemini_model import GeminiModel
+from rate_limiter import RateLimiter, get_client_ip
 
 import asyncio
 import os
@@ -18,6 +19,13 @@ def _read_system_prompt(path: str) -> str:
         return None
 
 model = GeminiModel(system_prompt=_read_system_prompt("sys_prompt.txt"))
+
+# Per-IP limiter guarding the two endpoints that call the Gemini API. Defaults to
+# 15 requests/hour/IP; override via env vars for tuning without a code change.
+chat_limiter = RateLimiter(
+    max_requests=int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "15")),
+    window_seconds=int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "3600")),
+)
 
 app = FastAPI()
 os.makedirs("static/charts", exist_ok=True)
@@ -35,7 +43,15 @@ class Message(BaseModel):
     session_id: str
 
 @app.post("/chat")
-async def chat(message: Message):
+async def chat(message: Message, request: Request):
+    allowed, retry_after = chat_limiter.check(get_client_ip(request))
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Please try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     if not model.is_session(message.session_id):
         model.create_session(message.session_id)
         print(f"Created new session with id {message.session_id}")
@@ -44,7 +60,15 @@ async def chat(message: Message):
     return {"response": res}
 
 @app.post("/chat/stream")
-async def chat_stream(message: Message):
+async def chat_stream(message: Message, request: Request):
+    allowed, retry_after = chat_limiter.check(get_client_ip(request))
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Please try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     if not model.is_session(message.session_id):
         model.create_session(message.session_id)
         print(f"Created new session with id {message.session_id}")
