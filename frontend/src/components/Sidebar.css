@@ -18,13 +18,21 @@
 .mtm-brand {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .mtm-brand .mark {
+  display: inline-block;
   font-weight: 800;
-  font-size: 26px;
+  font-size: 22px;
   letter-spacing: -0.02em;
+  background: var(--mtm-beige);
+  color: var(--mtm-green-900);
+  padding: 4px 26px;
+  border-radius: 8px;
+  border: 2px solid var(--mtm-green-900);
+  box-shadow: -3px 3px 0 0 var(--mtm-green-900);
 }
 
 .mtm-brand .sub {
