@@ -16,7 +16,7 @@
 # the named network — see homelab/decisions.md 2026-07-14):
 #   - `docker network create web-proxy` (external network both apps join)
 #   - ayto-webapp's docker-compose.yml already running on that network
-#   - DNS: app2.j-seidel.dev -> VPS, Cloudflare PROXIED (orange), SSL/TLS = Full (strict)
+#   - DNS: mtm.j-seidel.dev -> VPS, Cloudflare PROXIED (orange), SSL/TLS = Full (strict)
 #   - the Cloudflare origin cert already mounted into nginx-proxy by ayto-webapp's
 #     stack (covers *.j-seidel.dev, so no new cert needed)
 #   - backend/.env with GEMINI_API_KEY (gitignored, create manually on the server)
@@ -33,7 +33,7 @@ services:
     depends_on:
       - mtm-backend
     environment:
-      VIRTUAL_HOST: app2.j-seidel.dev
+      VIRTUAL_HOST: mtm.j-seidel.dev
       VIRTUAL_PORT: 80
       CERT_NAME: j-seidel.dev
     restart: unless-stopped
