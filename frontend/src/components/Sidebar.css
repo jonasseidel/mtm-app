@@ -46,24 +46,36 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid transparent;
-  background: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
   font-size: 14px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.15s ease;
+  /* Hard-edged (no blur), offset to the bottom-left — reads as a raised
+     3D block. A real click (:active, mouse held down) briefly removes the
+     shadow and nudges the button into the gap it left behind, so it looks
+     like it physically sinks flush with the surface, then pops back up on
+     release. The current-page state ("active" class) stays raised too —
+     only its color changes — otherwise it'd look permanently stuck down. */
+  box-shadow: -3px 3px 0 0 var(--mtm-green-900);
+  transform: translate(0, 0);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .mtm-nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
 }
 
+.mtm-nav-item:active {
+  transform: translate(-3px, 3px);
+  box-shadow: none;
+}
+
 .mtm-nav-item.active {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
 
