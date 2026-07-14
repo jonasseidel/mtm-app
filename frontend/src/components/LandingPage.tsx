@@ -11,7 +11,7 @@ function LandingPage({ onStart }: LandingPageProps) {
         <h1>Willkommen im Venner Moor</h1>
         <p className="lede">
           Ein digitaler Zwilling eines Moores: ein lebendiges Ökosystem, das du
-          direkt befragen kannst — über seinen aktuellen Zustand, seine
+          direkt befragen kannst, über seinen aktuellen Zustand, seine
           Sensordaten und Moore im Allgemeinen.
         </p>
 

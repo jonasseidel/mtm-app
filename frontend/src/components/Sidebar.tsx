@@ -29,7 +29,7 @@ function Sidebar({ active, onHowItWorks, onNewChat }: SidebarProps) {
       </nav>
 
       <div className="mtm-sidebar-foot">
-        Sensordaten + ein Sprachmodell — ein Moor, mit dem man wirklich reden kann.
+        Sensordaten + ein Sprachmodell, ein Moor, mit dem man wirklich reden kann.
       </div>
     </aside>
   );
