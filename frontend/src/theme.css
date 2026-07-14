@@ -10,6 +10,7 @@
   --mtm-ink: #1c2b23;
   --mtm-muted: #5c7268;
   --mtm-beige: #f3e8cf;
+  --mtm-beige-100: #faf5e7;
   --mtm-sidebar-width: 240px;
 }
 
@@ -27,7 +28,7 @@ html {
 body {
   margin: 0;
   color: var(--mtm-ink);
-  background: linear-gradient(180deg, #ffffff 0%, #f6fdf9 55%, var(--mtm-green-100) 100%);
+  background-color: var(--mtm-beige-100);
   background-attachment: fixed;
   min-height: 100vh;
 }

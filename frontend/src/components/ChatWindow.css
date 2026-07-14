@@ -9,7 +9,7 @@
 }
 
 .chat-box {
-  background-color: #fff;
+  background-color: var(--mtm-green-100);
   border: 1px solid var(--mtm-green-700);
   border-radius: 20px;
   padding: 14px 20px;
@@ -35,15 +35,24 @@
    width) — otherwise the border/shadow rendered around the spacer's shape
    too, even with a transparent background. */
 .chat-container.bg-light {
+  background-color: var(--mtm-green-100) !important; /* matches the page's own background */
   border: 1px solid var(--mtm-green-700);
   box-shadow: -2px 2px 0 0 var(--mtm-green-700);
 }
 
 .chat-input {
-  border: none !important;
+  border: 1px solid var(--mtm-green-700) !important;
+  border-radius: 12px;
   outline: none !important;
   box-shadow: none !important;
-  background-color: transparent; /* Optional */
+  background-color: transparent;
+  /* Still scrollable once it hits maxRows, just no visible scrollbar. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge/IE */
+}
+
+.chat-input::-webkit-scrollbar {
+  display: none; /* Chrome/Edge/Safari */
 }
 
 /* .chat-box uses bootstrap's fixed-bottom (position:fixed; left:0; right:0),
@@ -63,7 +72,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: var(--mtm-green-100);
   color: var(--mtm-green-900);
   border: 2px solid var(--mtm-green-700);
   box-shadow: -3px 3px 0 0 var(--mtm-green-700);
@@ -73,7 +82,7 @@
 }
 
 .mtm-icon-btn:hover {
-  background: var(--mtm-green-100);
+  background: var(--mtm-green-200);
 }
 
 .mtm-icon-btn:active {
@@ -111,9 +120,18 @@
 
 /* Sharpen just the corner pointing at the sender (bottom-left for the bot,
    bottom-right for you) — a small nod to a speech-bubble shape without an
-   actual tail. */
+   actual tail. Bot replies get the same beige as the MTM badge (the marsh's
+   own "voice"); your messages stay white for clear contrast against it. */
 .mtm-bubble-bot {
   border-bottom-left-radius: 4px !important;
+  background-color: var(--mtm-beige);
+}
+
+/* Errors also carry .mtm-bubble-bot (for the sharpened corner) but should
+   stay neutral, not green — compound selector to win over it unambiguously
+   regardless of source order. */
+.mtm-bubble-bot.mtm-bubble-error {
+  background-color: #fff;
 }
 
 .mtm-bubble-user {
