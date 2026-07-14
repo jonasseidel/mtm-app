@@ -12,7 +12,7 @@ interface ChatWindowProps {
 function ChatWindowDisplay({messages, isStreaming, onSkip}: ChatWindowProps) {
 
   return (
-      <div className="container border rounded-4 min-vh-100 bg-light p-3 chat-container">
+      <div className="container rounded-4 min-vh-100 bg-light p-3 chat-container">
         <div className="vstack gap-3 p-3 mx-auto">
           {messages.map(([message, source, image], index) =>
             source === 1 ? (

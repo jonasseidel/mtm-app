@@ -70,7 +70,7 @@
 
 .mtm-start-btn {
   background: var(--mtm-green-500);
-  border: 2px solid var(--mtm-green-900);
+  border: 2px solid var(--mtm-green-700);
   color: #fff;
   font-weight: 700;
   font-size: 16px;
@@ -78,7 +78,7 @@
   border-radius: 10px;
   cursor: pointer;
   /* Same hard-edged cube style as the sidebar nav buttons. */
-  box-shadow: -4px 4px 0 0 var(--mtm-green-900);
+  box-shadow: -4px 4px 0 0 var(--mtm-green-700);
   transform: translate(0, 0);
   transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
 }

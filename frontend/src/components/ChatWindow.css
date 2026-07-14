@@ -9,15 +9,14 @@
 }
 
 .chat-box {
-  background-color: transparent;
+  background-color: #fff;
+  border: 1px solid var(--mtm-green-700);
   border-radius: 20px;
   padding: 14px 20px;
   cursor: text; /* 👈 makes whole box show the text cursor */
   transition: all 0.2s ease;
-  box-shadow:
-    0 1px 2px rgba(27, 67, 50, 0.06),
-    0 8px 16px rgba(27, 67, 50, 0.10),
-    0 20px 34px rgba(27, 67, 50, 0.12);
+  /* Same hard-edged cube style as the sidebar/badge/buttons. */
+  box-shadow: -2px 2px 0 0 var(--mtm-green-700);
 }
 
 .chat-container {
@@ -33,13 +32,11 @@
 
 /* Scoped to .bg-light (only the message box has it, not the invisible
    fixed-bottom spacer in ChatWindow.tsx that shares .chat-container for its
-   width) — otherwise the shadow rendered around the spacer's shape too, even
-   with a transparent background. */
+   width) — otherwise the border/shadow rendered around the spacer's shape
+   too, even with a transparent background. */
 .chat-container.bg-light {
-  box-shadow:
-    0 1px 2px rgba(27, 67, 50, 0.05),
-    0 10px 20px rgba(27, 67, 50, 0.08),
-    0 30px 50px rgba(27, 67, 50, 0.10);
+  border: 1px solid var(--mtm-green-700);
+  box-shadow: -2px 2px 0 0 var(--mtm-green-700);
 }
 
 .chat-input {
@@ -56,4 +53,44 @@
   .chat-box {
     left: var(--mtm-sidebar-width, 240px);
   }
+}
+
+/* Reload/send buttons — same hard-edged cube style as the rest of the app. */
+.mtm-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--mtm-green-900);
+  border: 2px solid var(--mtm-green-700);
+  box-shadow: -3px 3px 0 0 var(--mtm-green-700);
+  transform: translate(0, 0);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
+  cursor: pointer;
+}
+
+.mtm-icon-btn:hover {
+  background: var(--mtm-green-100);
+}
+
+.mtm-icon-btn:active {
+  transform: translate(-3px, 3px);
+  box-shadow: none;
+}
+
+.mtm-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.mtm-icon-btn-primary {
+  background: var(--mtm-green-500);
+  color: #fff;
+}
+
+.mtm-icon-btn-primary:hover {
+  background: var(--mtm-green-400);
 }

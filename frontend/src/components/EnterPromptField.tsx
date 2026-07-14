@@ -58,7 +58,7 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
 
   return (
 
-        <div className='bg-light rounded-4 justify-content-center fixed-bottom mb-1 chat-box mx-auto border p-2' onClick={focusInput}>
+        <div className='rounded-4 justify-content-center fixed-bottom mb-1 chat-box mx-auto p-2' onClick={focusInput}>
           <div className="vstack gap-2 mx-auto align-items-center">
             <TextareaAutosize
                     className="d-flex bg-light w-100 chat-input p-2 form-control"
@@ -81,8 +81,8 @@ function EnterPromptField({onSend, onReset, placeholder = "Deine Frage ..."}: En
                     placeholder={placeholder}
                 />
             <div className="hstack gap-4 ">
-                <button className="btn btn-outline-secondary rounded-circle" type="button" onClick={handleReset} disabled={resetDisabled}><i className="bi bi-arrow-repeat fs-5"></i></button>
-                <button className="btn btn-outline-primary rounded-circle ms-auto" type="button" onClick={handleSend} disabled={sendDisabled}> <i className="bi bi-arrow-up fs-5"></i></button>
+                <button className="mtm-icon-btn" type="button" onClick={handleReset} disabled={resetDisabled}><i className="bi bi-arrow-repeat fs-5"></i></button>
+                <button className="mtm-icon-btn mtm-icon-btn-primary ms-auto" type="button" onClick={handleSend} disabled={sendDisabled}><i className="bi bi-arrow-up fs-5"></i></button>
             </div>
           </div>
         </div>
