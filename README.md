@@ -1,11 +1,11 @@
 # mtm-app
 
-Prototype for a digital twin of a marsh. 
+Prototype for a digital twin of a marsh. Live on https://mtm.j-seidel.dev/
 
 Stack:
 - Frontend via React
 - Backend using fastAPI, GeminiAPI, function-calling
-- sqllite database for marsh sensor data that the llm can access
+- Sqllite database for marsh sensor data that the llm can access
 
 Features:
 - Web application to chat with the marsh
@@ -23,4 +23,4 @@ To run locally:
 in /frontend: npm run dev
 in /backend: uvicorn main:app --reload
 
-Or using docker.
+Or simply using docker.
